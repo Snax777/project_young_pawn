@@ -13,15 +13,16 @@ class GameState:
         'R', 'Q', and 'K'.
         The string '--' represents an empty square.
         """
+        self.pieces = ["R", "N", "B", "Q", "K", "B", "N", "R"]
         self.board = [
-            ["bR", "bN", "bB", "bQ", "bK", "bB", "bN", "bR"],
-            ["bp", "bp", "bp", "bp", "bp", "bp", "bp", "bp"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["--", "--", "--", "--", "--", "--", "--", "--"],
-            ["wp", "wp", "wp", "wp", "wp", "wp", "wp", "wp"],
-            ["wR", "wN", "wB", "wQ", "wK", "wB", "wN", "wR"],
+            [f"b{piece}" for piece in self.pieces],
+            ["bp" for num in range(8)],
+            ["--" for num in range(8)],
+            ["--" for num in range(8)],
+            ["--" for num in range(8)],
+            ["--" for num in range(8)],
+            ["wp" for num in range(8)],
+            [f"w{piece}" for piece in self.pieces],
         ]
         self.white_to_move = True
         self.move_log = []
