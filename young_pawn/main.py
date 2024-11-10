@@ -92,11 +92,34 @@ def main():
     load_images()
 
     running = True
+    square_selected = ()
+    player_clicks = []
 
     while running:
         for event in p.event.get():
             if event.type == p.QUIT:
                 running = False
+            elif event.type == p.MOUSEBUTTONDOWN:
+                location = p.mouse.get_pos()
+                col = location[0] // SQUARE_SIZE
+                row = location[-1] // SQUARE_SIZE
+
+                if square_selected == (row, col):
+                    square_selected = ()
+                    player_clicks = []
+                else:
+                    square_selected = (row, col)
+                    player_clicks.append(square_selected)
+
+                if len(player_clicks) == 2:
+                    move = chess_engine.Move(
+                        player_clicks[0], player_clicks[-1], game_state.board
+                    )
+
+                    game_state.make_move(move)
+
+                    square_selected = ()
+                    player_clicks = []
 
         draw_game_state(screen, game_state)
         clock.tick(MAX_FPS)
