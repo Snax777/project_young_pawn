@@ -24,6 +24,14 @@ class GameState:
             ["wp" for num in range(8)],
             [f"w{piece}" for piece in self.pieces],
         ]
+        self.move_functions = {
+            "p": self.get_pawn_moves,
+            "N": self.get_knight_moves,
+            "B": self.get_bishop_moves,
+            "R": self.get_rook_moves,
+            "Q": self.get_queen_moves,
+            "K": self.get_king_moves,
+        }
         self.white_to_move = True
         self.move_log = []
 
@@ -64,18 +72,7 @@ class GameState:
                 ):
                     piece = self.board[row][col][-1]
 
-                    if piece == "p":
-                        self.get_pawn_moves(row, col, possible_moves)
-                    elif piece == "N":
-                        self.get_knight_moves(row, col, possible_moves)
-                    elif piece == "B":
-                        self.get_bishop_moves(row, col, possible_moves)
-                    elif piece == "R":
-                        self.get_rook_moves(row, col, possible_moves)
-                    elif piece == "Q":
-                        self.get_queen_moves(row, col, possible_moves)
-                    else:
-                        self.get_king_moves(row, col, possible_moves)
+                    self.move_functions[piece](row, col, possible_moves)
 
         return possible_moves
 
@@ -182,7 +179,7 @@ class GameState:
                     off_col = offset[1] * num
 
                     if (0 <= row + off_row <= 7) and (0 <= col + off_col <= 7):
-                        if self.board[row + off_row][col + off_col][0] in ["b", "-"]:
+                        if self.board[row + off_row][col + off_col][0] == "b":
                             moves.append(
                                 Move(
                                     (row, col),
@@ -190,6 +187,17 @@ class GameState:
                                     self.board,
                                 )
                             )
+                            break
+                        elif self.board[row + off_row][col + off_col][0] == "-":
+                            moves.append(
+                                Move(
+                                    (row, col),
+                                    (row + off_row, col + off_col),
+                                    self.board,
+                                )
+                            )
+                        elif self.board[row + off_row][col + off_col][0] == "w":
+                            break
         else:
             for offset in bishop_offsets:
                 for num in range(1, 8):
@@ -197,7 +205,7 @@ class GameState:
                     off_col = offset[1] * num
 
                     if (0 <= row + off_row <= 7) and (0 <= col + off_col <= 7):
-                        if self.board[row + off_row][col + off_col][0] in ["b", "-"]:
+                        if self.board[row + off_row][col + off_col][0] == "w":
                             moves.append(
                                 Move(
                                     (row, col),
@@ -205,6 +213,17 @@ class GameState:
                                     self.board,
                                 )
                             )
+                            break
+                        elif self.board[row + off_row][col + off_col][0] == "-":
+                            moves.append(
+                                Move(
+                                    (row, col),
+                                    (row + off_row, col + off_col),
+                                    self.board,
+                                )
+                            )
+                        elif self.board[row + off_row][col + off_col][0] == "b":
+                            break
 
         return moves
 
@@ -221,7 +240,7 @@ class GameState:
                     off_col = offset[1] * num
 
                     if (0 <= row + off_row <= 7) and (0 <= col + off_col <= 7):
-                        if self.board[row + off_row][col + off_col][0] in ["b", "-"]:
+                        if self.board[row + off_row][col + off_col][0] == "b":
                             moves.append(
                                 Move(
                                     (row, col),
@@ -229,6 +248,17 @@ class GameState:
                                     self.board,
                                 )
                             )
+                            break
+                        elif self.board[row + off_row][col + off_col][0] == "-":
+                            moves.append(
+                                Move(
+                                    (row, col),
+                                    (row + off_row, col + off_col),
+                                    self.board,
+                                )
+                            )
+                        else:
+                            pass
         else:
             for offset in rook_offsets:
                 for num in range(1, 8):
@@ -236,7 +266,7 @@ class GameState:
                     off_col = offset[1] * num
 
                     if (0 <= row + off_row <= 7) and (0 <= col + off_col <= 7):
-                        if self.board[row + off_row][col + off_col][0] in ["b", "-"]:
+                        if self.board[row + off_row][col + off_col][0] == "w":
                             moves.append(
                                 Move(
                                     (row, col),
@@ -244,6 +274,17 @@ class GameState:
                                     self.board,
                                 )
                             )
+                            break
+                        elif self.board[row + off_row][col + off_col][0] == "-":
+                            moves.append(
+                                Move(
+                                    (row, col),
+                                    (row + off_row, col + off_col),
+                                    self.board,
+                                )
+                            )
+                        else:
+                            break
 
         return moves
 
