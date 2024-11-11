@@ -59,7 +59,7 @@ class GameState:
             for col in range(len(self.board[row])):
                 piece_color = self.board[row][col][0]
 
-                if (piece_color == "w" and self.white_to_move) and (
+                if (piece_color == "w" and self.white_to_move) or (
                     piece_color == "b" and not self.white_to_move
                 ):
                     piece = self.board[row][col][-1]
@@ -78,6 +78,227 @@ class GameState:
                         self.get_king_moves(row, col, possible_moves)
 
         return possible_moves
+
+    def get_pawn_moves(self, row, col, moves):
+        """
+        Gets all the valid pawn moves.
+        """
+        if self.white_to_move:
+            if self.board[row - 1][col] == "--" and 0 <= row - 1 <= 7:
+                moves.append(Move((row, col), (row - 1, col), self.board))
+
+                if self.board[row - 2][col] == "--" and row == 6:
+                    moves.append(Move((row, col), (row - 2, col), self.board))
+            if (
+                (0 <= col - 1 <= 7)
+                and (0 <= row - 1 <= 7)
+                and self.board[row - 1][col - 1][0] == "b"
+            ):
+                moves.append(Move((row, col), (row - 1, col - 1), self.board))
+
+            if (
+                (0 <= col + 1 <= 7)
+                and (0 <= row - 1 <= 7)
+                and self.board[row - 1][col + 1][0] == "b"
+            ):
+                moves.append(Move((row, col), (row - 1, col + 1), self.board))
+        else:
+            if self.board[row + 1][col] == "--" and 0 <= row + 1 <= 7:
+                moves.append(Move((row, col), (row + 1, col), self.board))
+
+                if self.board[row + 2][col] == "--" and row == 1:
+                    moves.append(Move((row, col), (row + 2, col), self.board))
+            if (
+                (0 <= col - 1 <= 7)
+                and (0 <= row + 1 <= 7)
+                and self.board[row + 1][col - 1][0] == "w"
+            ):
+                moves.append(Move((row, col), (row + 1, col - 1), self.board))
+
+            if (
+                (0 <= col + 1 <= 7)
+                and (0 <= row + 1 <= 7)
+                and self.board[row + 1][col + 1][0] == "w"
+            ):
+                moves.append(Move((row, col), (row + 1, col + 1), self.board))
+
+        return moves
+
+    def get_knight_moves(self, row, col, moves):
+        """
+        Gets all the valid knight moves.
+        """
+        knight_coordinates = [
+            (-2, -1),
+            (-2, 1),
+            (2, -1),
+            (2, 1),
+            (1, -2),
+            (1, 2),
+            (-1, -2),
+            (-1, 2),
+        ]
+
+        if self.white_to_move:
+            for coordinates in knight_coordinates:
+                coord_row = coordinates[0]
+                coord_col = coordinates[-1]
+
+                if (0 <= row + coord_row <= 7) and (0 <= col + coord_col <= 7):
+                    if self.board[row + coord_row][col + coord_col][0] in ["b", "-"]:
+                        moves.append(
+                            Move(
+                                (row, col),
+                                (row + coord_row, col + coord_col),
+                                self.board,
+                            )
+                        )
+        else:
+            for coordinates in knight_coordinates:
+                coord_row = coordinates[0]
+                coord_col = coordinates[-1]
+
+                if (
+                    (0 <= row + coord_row <= 7)
+                    and (0 <= col + coord_col <= 7)
+                    and self.board[row + coord_row][col + coord_col][0] in ["w", "-"]
+                ):
+                    moves.append(
+                        Move((row, col), (row + coord_row, col + coord_col), self.board)
+                    )
+
+        return moves
+
+    def get_bishop_moves(self, row, col, moves):
+        """
+        Gets all the valid bishop moves.
+        """
+        bishop_offsets = [(-1, -1), (-1, 1), (1, -1), (1, 1)]
+
+        if self.white_to_move:
+            for offset in bishop_offsets:
+                for num in range(1, 8):
+                    off_row = offset[0] * num
+                    off_col = offset[1] * num
+
+                    if (0 <= row + off_row <= 7) and (0 <= col + off_col <= 7):
+                        if self.board[row + off_row][col + off_col][0] in ["b", "-"]:
+                            moves.append(
+                                Move(
+                                    (row, col),
+                                    (row + off_row, col + off_col),
+                                    self.board,
+                                )
+                            )
+        else:
+            for offset in bishop_offsets:
+                for num in range(1, 8):
+                    off_row = offset[0] * num
+                    off_col = offset[1] * num
+
+                    if (0 <= row + off_row <= 7) and (0 <= col + off_col <= 7):
+                        if self.board[row + off_row][col + off_col][0] in ["b", "-"]:
+                            moves.append(
+                                Move(
+                                    (row, col),
+                                    (row + off_row, col + off_col),
+                                    self.board,
+                                )
+                            )
+
+        return moves
+
+    def get_rook_moves(self, row, col, moves):
+        """
+        Gets all the valid rook moves.
+        """
+        rook_offsets = [(-1, 0), (0, 1), (1, 0), (0, -1)]
+
+        if self.white_to_move:
+            for offset in rook_offsets:
+                for num in range(1, 8):
+                    off_row = offset[0] * num
+                    off_col = offset[1] * num
+
+                    if (0 <= row + off_row <= 7) and (0 <= col + off_col <= 7):
+                        if self.board[row + off_row][col + off_col][0] in ["b", "-"]:
+                            moves.append(
+                                Move(
+                                    (row, col),
+                                    (row + off_row, col + off_col),
+                                    self.board,
+                                )
+                            )
+        else:
+            for offset in rook_offsets:
+                for num in range(1, 8):
+                    off_row = offset[0] * num
+                    off_col = offset[1] * num
+
+                    if (0 <= row + off_row <= 7) and (0 <= col + off_col <= 7):
+                        if self.board[row + off_row][col + off_col][0] in ["b", "-"]:
+                            moves.append(
+                                Move(
+                                    (row, col),
+                                    (row + off_row, col + off_col),
+                                    self.board,
+                                )
+                            )
+
+        return moves
+
+    def get_queen_moves(self, row, col, moves):
+        """
+        Gets all the valid queen moves.
+        """
+        self.get_bishop_moves(row, col, moves)
+        self.get_rook_moves(row, col, moves)
+
+    def get_king_moves(self, row, col, moves):
+        """
+        Gets all the valid king moves.
+        """
+        king_offsets = [
+            (-1, -1),
+            (-1, 0),
+            (-1, 1),
+            (0, -1),
+            (0, 1),
+            (1, -1),
+            (1, 0),
+            (1, 1),
+        ]
+
+        if self.white_to_move:
+            for offset in king_offsets:
+                off_row = offset[0]
+                off_col = offset[1]
+
+                if (0 <= row + off_row <= 7) and (0 <= col + off_col <= 7):
+                    if self.board[row + off_row][col + off_col][0] in ["b", "-"]:
+                        moves.append(
+                            Move(
+                                (row, col),
+                                (row + off_row, col + off_col),
+                                self.board,
+                            )
+                        )
+        else:
+            for offset in king_offsets:
+                off_row = offset[0]
+                off_col = offset[1]
+
+                if (0 <= row + off_row <= 7) and (0 <= col + off_col <= 7):
+                    if self.board[row + off_row][col + off_col][0] in ["b", "-"]:
+                        moves.append(
+                            Move(
+                                (row, col),
+                                (row + off_row, col + off_col),
+                                self.board,
+                            )
+                        )
+
+        return moves
 
 
 class Move:
@@ -99,7 +320,6 @@ class Move:
             + (self.end_row * 10)
             + self.end_col
         )
-        print(self.move_id)
 
     def __eq__(self, other):
         if isinstance(other, Move):
