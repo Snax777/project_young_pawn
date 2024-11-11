@@ -118,7 +118,17 @@ def main():
                         player_clicks[0], player_clicks[-1], game_state.board
                     )
 
-                    print(move.get_chess_notation())
+                    if (
+                        game_state.board[player_clicks[0][0]][player_clicks[0][-1]][-1]
+                        != "p"
+                    ):
+                        chess_piece = game_state.board[player_clicks[0][0]][
+                            player_clicks[0][-1]
+                        ][-1]
+                    else:
+                        chess_piece = ""
+
+                    print(f"{chess_piece}{move.get_chess_notation()}")
 
                     if move in valid_moves:
                         game_state.make_move(move)
