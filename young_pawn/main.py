@@ -88,6 +88,8 @@ def main():
     screen.fill(p.Color("white"))
 
     game_state = chess_engine.GameState()
+    valid_moves = game_state.get_valid_moves()
+    move_made = False
 
     load_images()
 
@@ -117,10 +119,21 @@ def main():
                     )
 
                     print(move.get_chess_notation())
-                    game_state.make_move(move)
+
+                    if move in valid_moves:
+                        game_state.make_move(move)
+                        move_made = True
 
                     square_selected = ()
                     player_clicks = []
+            elif event.type == p.KEYDOWN:
+                if event.key == p.K_z:
+                    game_state.undo_move()
+                    move_made = True
+
+        if move_made:
+            valid_moves = game_state.get_valid_moves()
+            move_made = False
 
         draw_game_state(screen, game_state)
         clock.tick(MAX_FPS)
