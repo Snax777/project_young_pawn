@@ -258,7 +258,7 @@ class GameState:
                                 )
                             )
                         else:
-                            pass
+                            break
         else:
             for offset in rook_offsets:
                 for num in range(1, 8):
