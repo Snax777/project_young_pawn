@@ -330,7 +330,7 @@ class GameState:
                 off_col = offset[1]
 
                 if (0 <= row + off_row <= 7) and (0 <= col + off_col <= 7):
-                    if self.board[row + off_row][col + off_col][0] in ["b", "-"]:
+                    if self.board[row + off_row][col + off_col][0] in ["w", "-"]:
                         moves.append(
                             Move(
                                 (row, col),
