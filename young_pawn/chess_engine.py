@@ -34,12 +34,21 @@ class GameState:
         }
         self.white_to_move = True
         self.move_log = []
+        self.white_king_location = (7, 4)
+        self.black_king_location = (0, 4)
+        self.checkmate = False
+        self.stalemate = False
 
     def make_move(self, move):
         self.board[move.start_row][move.start_col] = "--"
         self.board[move.end_row][move.end_col] = move.piece_moved
         self.move_log.append(move)
         self.white_to_move = not self.white_to_move
+
+        if move.piece_moved == "wK":
+            self.white_king_location = (move.end_row, move.end_col)
+        elif move.piece_moved == "bK":
+            self.black_king_location = (move.end_row, move.end_col)
 
     def undo_move(self):
         """
@@ -51,11 +60,61 @@ class GameState:
             self.board[move.end_row][move.end_col] = move.piece_captured
             self.white_to_move = not self.white_to_move
 
+            if move.piece_moved == "wK":
+                self.white_king_location = (move.start_row, move.start_col)
+            elif move.piece_moved == "bK":
+                self.black_king_location = (move.start_row, move.start_col)
+
     def get_valid_moves(self):
         """
         Gets valid/legal chess moves when king is in check.
         """
-        return self.get_all_possible_moves()
+        valid_moves = self.get_all_possible_moves()
+        length = len(valid_moves)
+
+        for val in range(length - 1, -1, -1):
+            self.make_move(valid_moves[val])
+
+            self.white_to_move = not self.white_to_move
+
+            if self.in_check():
+                valid_moves.remove(valid_moves[val])
+
+            self.white_to_move = not self.white_to_move
+
+            self.undo_move()
+
+        if len(valid_moves) == 0:
+            if self.in_check():
+                self.checkmate = True
+            else:
+                self.stalemate = True
+        else:
+            self.checkmate = False
+            self.stalemate = False
+
+        return valid_moves
+
+    def in_check(self):
+        if self.white_to_move:
+            return self.square_under_attack(
+                self.white_king_location[0], self.white_king_location[1]
+            )
+        else:
+            return self.square_under_attack(
+                self.black_king_location[0], self.black_king_location[1]
+            )
+
+    def square_under_attack(self, row, col):
+        self.white_to_move = not self.white_to_move
+        opp_moves = self.get_all_possible_moves()
+        self.white_to_move = not self.white_to_move
+
+        for move in opp_moves:
+            if move.end_row == row and move.end_col == col:
+                return True
+
+        return False
 
     def get_all_possible_moves(self):
         """
@@ -76,7 +135,7 @@ class GameState:
 
         return possible_moves
 
-    def get_pawn_moves(self, row, col, moves):
+    def get_pawn_moves(self, row, col, moves) -> list[object]:
         """
         Gets all the valid pawn moves.
         """
@@ -121,7 +180,7 @@ class GameState:
 
         return moves
 
-    def get_knight_moves(self, row, col, moves):
+    def get_knight_moves(self, row, col, moves) -> list[object]:
         """
         Gets all the valid knight moves.
         """
@@ -166,7 +225,7 @@ class GameState:
 
         return moves
 
-    def get_bishop_moves(self, row, col, moves):
+    def get_bishop_moves(self, row, col, moves) -> list[object]:
         """
         Gets all the valid bishop moves.
         """
@@ -227,7 +286,7 @@ class GameState:
 
         return moves
 
-    def get_rook_moves(self, row, col, moves):
+    def get_rook_moves(self, row, col, moves) -> list[object]:
         """
         Gets all the valid rook moves.
         """
@@ -288,14 +347,14 @@ class GameState:
 
         return moves
 
-    def get_queen_moves(self, row, col, moves):
+    def get_queen_moves(self, row, col, moves) -> list[object]:
         """
         Gets all the valid queen moves.
         """
         self.get_bishop_moves(row, col, moves)
         self.get_rook_moves(row, col, moves)
 
-    def get_king_moves(self, row, col, moves):
+    def get_king_moves(self, row, col, moves) -> list[object]:
         """
         Gets all the valid king moves.
         """
