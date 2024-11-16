@@ -124,16 +124,32 @@ class GameState:
             self.castling_rights = self.castling_log[-1]
 
             if move.castling:
-                if move.end_col - move.start_col == 2:
-                    self.board[move.end_row][move.end_col + 1] = self.board[
-                        move.end_row
-                    ][move.end_col - 1]
-                    self.board[move.end_row][move.end_col - 1] = "--"
-                else:
-                    self.board[move.end_row][move.end_col - 2] = self.board[
-                        move.end_row
-                    ][move.end_col + 1]
-                    self.board[move.end_row][move.end_col + 1] = "--"
+                if move.piece_moved == "wK":
+                    if move.end_col - move.start_col == 2:
+                        self.board[move.end_row][move.end_col + 1] = self.board[
+                            move.end_row
+                        ][move.end_col - 1]
+                        self.board[move.end_row][move.end_col - 1] = "--"
+                        self.castling_rights.w_kingside = True
+                    else:
+                        self.board[move.end_row][move.end_col - 2] = self.board[
+                            move.end_row
+                        ][move.end_col + 1]
+                        self.board[move.end_row][move.end_col + 1] = "--"
+                        self.castling_rights.w_queenside = True
+                elif move.piece_moved == "bK":
+                    if move.end_col - move.start_col == 2:
+                        self.board[move.end_row][move.end_col + 1] = self.board[
+                            move.end_row
+                        ][move.end_col - 1]
+                        self.board[move.end_row][move.end_col - 1] = "--"
+                        self.castling_rights.b_kingside = True
+                    else:
+                        self.board[move.end_row][move.end_col - 2] = self.board[
+                            move.end_row
+                        ][move.end_col + 1]
+                        self.board[move.end_row][move.end_col + 1] = "--"
+                        self.castling_rights.b_queenside = True
 
     def update_castling_rights(self, move):
         """
@@ -204,15 +220,6 @@ class GameState:
 
         self.en_passant_possible = temp_en_passant
         self.castling_rights = temp_castling_rights
-
-        for log in self.castling_log:
-            print(
-                log.w_kingside,
-                log.w_queenside,
-                log.b_kingside,
-                log.b_queenside,
-                end=", ",
-            )
 
         return valid_moves
 
