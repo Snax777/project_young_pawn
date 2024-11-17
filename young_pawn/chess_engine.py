@@ -130,26 +130,34 @@ class GameState:
                             move.end_row
                         ][move.end_col - 1]
                         self.board[move.end_row][move.end_col - 1] = "--"
-                        self.castling_rights.w_kingside = True
+                        self.castling_rights.w_kingside = (
+                            True  # Restores right to castle kingside
+                        )
                     else:
                         self.board[move.end_row][move.end_col - 2] = self.board[
                             move.end_row
                         ][move.end_col + 1]
                         self.board[move.end_row][move.end_col + 1] = "--"
-                        self.castling_rights.w_queenside = True
+                        self.castling_rights.w_queenside = (
+                            True  # Restores right to castle queenside
+                        )
                 elif move.piece_moved == "bK":
                     if move.end_col - move.start_col == 2:
                         self.board[move.end_row][move.end_col + 1] = self.board[
                             move.end_row
                         ][move.end_col - 1]
                         self.board[move.end_row][move.end_col - 1] = "--"
-                        self.castling_rights.b_kingside = True
+                        self.castling_rights.b_kingside = (
+                            True  # Restores right to castle kingside
+                        )
                     else:
                         self.board[move.end_row][move.end_col - 2] = self.board[
                             move.end_row
                         ][move.end_col + 1]
                         self.board[move.end_row][move.end_col + 1] = "--"
-                        self.castling_rights.b_queenside = True
+                        self.castling_rights.b_queenside = (
+                            True  # Restores right to castle queenside
+                        )
 
     def update_castling_rights(self, move):
         """
