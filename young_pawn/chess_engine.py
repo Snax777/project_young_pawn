@@ -232,6 +232,9 @@ class GameState:
         return valid_moves
 
     def in_check(self):
+        """
+        Checks if the king -- white or black -- is under attack.
+        """
         if self.white_to_move:
             return self.square_under_attack(
                 self.white_king_location[0], self.white_king_location[1]
@@ -242,6 +245,9 @@ class GameState:
             )
 
     def square_under_attack(self, row, col):
+        """
+        Looks for squares that are a chess piece's influence.
+        """
         self.white_to_move = not self.white_to_move
         opp_moves = self.get_all_possible_moves()
         self.white_to_move = not self.white_to_move

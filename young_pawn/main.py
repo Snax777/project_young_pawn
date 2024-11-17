@@ -98,7 +98,7 @@ def animate_move(move, screen, board, clock):
     row_diff = move.end_row - move.start_row
     col_diff = move.end_col - move.start_col
 
-    frames_per_square = 10
+    frames_per_square = 5
     frame_count = max(abs(row_diff), abs(col_diff)) * frames_per_square
 
     for frame in range(frame_count + 1):
