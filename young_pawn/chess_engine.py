@@ -587,7 +587,7 @@ class GameState:
         if (
             (self.board[row][col - 1] == "--")
             and (self.board[row][col - 2] == "--")
-            and (self.board[row][col - 3])
+            and (self.board[row][col - 3] == "--")
         ):
             if (not self.square_under_attack(row, col - 1)) and (
                 not self.square_under_attack(row, col - 2)
