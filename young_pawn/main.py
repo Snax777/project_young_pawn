@@ -180,7 +180,7 @@ def main():
     square_selected = ()
     player_clicks = []
     game_over = False
-    player_one = True
+    player_one = False
     player_two = False
 
     while running:
@@ -249,7 +249,10 @@ def main():
                     animate = False
 
         if not game_over and not human_to_play:
-            ai_move = chess_ai.find_random_move(valid_moves)
+            ai_move = chess_ai.find_greedy_move(game_state, valid_moves)
+
+            if ai_move is None:
+                ai_move = chess_ai.find_random_move(valid_moves)
 
             game_state.make_move(ai_move)
 

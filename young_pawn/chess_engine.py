@@ -278,30 +278,23 @@ class GameState:
         return possible_moves
 
     def get_pawn_moves(self, row, col, moves) -> list[object]:
-        """
-        Gets all the valid pawn moves.
-        """
         if self.white_to_move:
-            if self.board[row - 1][col] == "--":
+            if row - 1 >= 0 and self.board[row - 1][col] == "--":
                 moves.append(Move((row, col), (row - 1, col), self.board))
-
-                if self.board[row - 2][col] == "--" and row == 6:
+                if row == 6 and self.board[row - 2][col] == "--":
                     moves.append(Move((row, col), (row - 2, col), self.board))
-            if col - 1 >= 0:
+            if col - 1 >= 0 and row - 1 >= 0:
                 if self.board[row - 1][col - 1][0] == "b":
                     moves.append(Move((row, col), (row - 1, col - 1), self.board))
-
                 if (row - 1, col - 1) == self.en_passant_possible:
                     moves.append(
                         Move(
                             (row, col), (row - 1, col - 1), self.board, en_passant=True
                         )
                     )
-
-            if col + 1 <= 7:
+            if col + 1 < len(self.board[row]) and row - 1 >= 0:
                 if self.board[row - 1][col + 1][0] == "b":
                     moves.append(Move((row, col), (row - 1, col + 1), self.board))
-
                 if (row - 1, col + 1) == self.en_passant_possible:
                     moves.append(
                         Move(
@@ -309,26 +302,22 @@ class GameState:
                         )
                     )
         else:
-            if self.board[row + 1][col] == "--":
+            if row + 1 < len(self.board) and self.board[row + 1][col] == "--":
                 moves.append(Move((row, col), (row + 1, col), self.board))
-
-                if self.board[row + 2][col] == "--" and row == 1:
+                if row == 1 and self.board[row + 2][col] == "--":
                     moves.append(Move((row, col), (row + 2, col), self.board))
-            if col - 1 >= 0:
+            if col - 1 >= 0 and row + 1 < len(self.board):
                 if self.board[row + 1][col - 1][0] == "w":
                     moves.append(Move((row, col), (row + 1, col - 1), self.board))
-
                 if (row + 1, col - 1) == self.en_passant_possible:
                     moves.append(
                         Move(
                             (row, col), (row + 1, col - 1), self.board, en_passant=True
                         )
                     )
-
-            if col + 1 <= 7:
+            if col + 1 < len(self.board[row]) and row + 1 < len(self.board):
                 if self.board[row + 1][col + 1][0] == "w":
                     moves.append(Move((row, col), (row + 1, col + 1), self.board))
-
                 if (row + 1, col + 1) == self.en_passant_possible:
                     moves.append(
                         Move(
