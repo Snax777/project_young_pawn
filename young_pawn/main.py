@@ -180,7 +180,7 @@ def main():
     square_selected = ()
     player_clicks = []
     game_over = False
-    player_one = False
+    player_one = True
     player_two = False
 
     while running:
@@ -239,6 +239,7 @@ def main():
                     valid_moves = game_state.get_valid_moves()
                     move_made = True
                     animate = False
+                    game_over = False
 
                 if event.key == p.K_r:
                     game_state = chess_engine.GameState()
@@ -247,9 +248,10 @@ def main():
                     player_clicks = []
                     move_made = False
                     animate = False
+                    game_over = False
 
         if not game_over and not human_to_play:
-            ai_move = chess_ai.find_greedy_move(game_state, valid_moves)
+            ai_move = chess_ai.find_best_move_min_max(game_state, valid_moves)
 
             if ai_move is None:
                 ai_move = chess_ai.find_random_move(valid_moves)

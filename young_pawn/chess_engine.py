@@ -159,6 +159,8 @@ class GameState:
                             True  # Restores right to castle queenside
                         )
 
+        self.checkmate, self.stalemate = False, False
+
     def update_castling_rights(self, move):
         """
         Updates the castling rights if castling has been achieved or any of the rights are violated.
@@ -548,7 +550,7 @@ class GameState:
 
     def get_castling_moves(self, row, col, moves):
         """
-        Get all valid castling moves for bothe white and black.
+        Get all valid castling moves for both white and black.
         """
         if self.square_under_attack(row, col):
             pass
