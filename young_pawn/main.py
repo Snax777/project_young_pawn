@@ -134,7 +134,7 @@ def animate_move(move, screen, board, clock):
 
 def draw_text(screen, text):
     font = p.font.SysFont("Helvitca", 40, True)
-    text_object = font.render(text, 0, p.Color("Black"))
+    text_object = font.render(text, 0, p.Color("Red"))
     text_location = p.Rect(0, 0, WIDTH, HEIGHT).move(
         (WIDTH / 2) - (text_object.get_width() / 2),
         (HEIGHT / 2) - (text_object.get_height() / 2),
