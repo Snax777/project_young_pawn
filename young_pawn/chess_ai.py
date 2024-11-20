@@ -166,3 +166,48 @@ def score_board(game_state):
                 score -= piece_value[square[1]]
 
     return score
+
+
+def find_move_nega_max(game_state, valid_moves, depth, turn):
+    """
+    Uses the NegaMax algorithm to find the best move at n depths.
+    """
+
+    global next_move
+
+    if depth == 0:
+        return turn * score_board(game_state)
+
+    max_score = -CHECKMATE
+
+    for move in valid_moves:
+        game_state.make_move(move)
+
+        next_moves = game_state.get_valid_moves()
+        score = -find_move_nega_max(game_state, next_moves, depth - 1, -turn)
+
+        if score > max_score:
+            max_score = score
+
+            if depth == DEPTH:
+                next_move = move
+
+        game_state.undo_move()
+
+    return max_score
+
+
+def find_best_move_nega_max(game_state, valid_moves):
+    """
+    Finds the best move from the NegaMax algorithm.
+    """
+
+    global next_move
+
+    next_move = None
+    turn_mul = 1 if game_state.white_to_move else -1
+
+    r.shuffle(valid_moves)
+    find_move_nega_max(game_state, valid_moves, DEPTH, turn_mul)
+
+    return next_move
