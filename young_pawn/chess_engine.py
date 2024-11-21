@@ -121,8 +121,6 @@ class GameState:
 
             self.castling_log.pop()
 
-            self.castling_rights = self.castling_log[-1]
-
             if move.castling:
                 if move.piece_moved == "wK":
                     if move.end_col - move.start_col == 2:
@@ -130,22 +128,26 @@ class GameState:
                             move.end_row
                         ][move.end_col - 1]
                         self.board[move.end_row][move.end_col - 1] = "--"
+                        self.castling_rights.w_kingside = True
                     else:
                         self.board[move.end_row][move.end_col - 2] = self.board[
                             move.end_row
                         ][move.end_col + 1]
                         self.board[move.end_row][move.end_col + 1] = "--"
+                        self.castling_rights.w_queenside = True
                 elif move.piece_moved == "bK":
                     if move.end_col - move.start_col == 2:
                         self.board[move.end_row][move.end_col + 1] = self.board[
                             move.end_row
                         ][move.end_col - 1]
                         self.board[move.end_row][move.end_col - 1] = "--"
+                        self.castling_rights.b_kingside = True
                     else:
                         self.board[move.end_row][move.end_col - 2] = self.board[
                             move.end_row
                         ][move.end_col + 1]
                         self.board[move.end_row][move.end_col + 1] = "--"
+                        self.castling_rights.b_queenside = True
 
         self.checkmate, self.stalemate = False, False
 
@@ -595,6 +597,11 @@ class Castling:
         self.w_queenside = w_queenside
         self.b_kingside = b_kingside
         self.b_queenside = b_queenside
+
+    def copy(self):
+        return Castling(
+            self.w_kingside, self.w_queenside, self.b_kingside, self.b_queenside
+        )
 
 
 class Move:
