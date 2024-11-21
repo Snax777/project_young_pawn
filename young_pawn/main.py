@@ -251,7 +251,9 @@ def main():
                     game_over = False
 
         if not game_over and not human_to_play:
-            ai_move = chess_ai.find_best_move_nega_max(game_state, valid_moves)
+            ai_move = chess_ai.find_best_move_nega_max_alpha_beta(
+                game_state, valid_moves
+            )
 
             if ai_move is None:
                 ai_move = chess_ai.find_random_move(valid_moves)
