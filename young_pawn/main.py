@@ -181,7 +181,7 @@ def main():
     player_clicks = []
     game_over = False
     player_one = True
-    player_two = False  # chess AI plays as black; diasllows kingside castling from the start of the game
+    player_two = False
 
     while running:
         human_to_play = (game_state.white_to_move and player_one) or (

@@ -1,3 +1,82 @@
+from copy import deepcopy
+
+
+class EmptyLinkedList(ValueError):
+    pass
+
+
+class _DoubleLinkedList:
+    class _Node:
+        __slots__ = "_element", "_next", "_prev"
+
+        def __init__(self, element, next, prev):
+            self._element = element
+            self._next = next
+            self._prev = prev
+
+    def __init__(self):
+        self._head = None
+        self._tail = None
+        self._size = 0
+
+    def __len__(self):
+        return self._size
+
+    def is_empty(self):
+        return self._size == 0
+
+    def enqueue(self, element):
+        node = _DoubleLinkedList._Node(element, None, None)
+
+        if self.is_empty():
+            self._head = (
+                node  # When the list is empty, set head and tail to the same node
+            )
+        else:
+            self._tail._next = node  # Link the current tail to the new node
+            node._prev = self._tail  # Link the new node back to the previous tail
+
+        self._tail = node
+
+        self._size += 1
+
+    def dequeue(self):
+        if self.is_empty():
+            raise EmptyLinkedList("Empty linked list")
+
+        node_element = self._head._element
+        self._head = self._head._next
+
+        if self._head:
+            self._head._prev = None
+
+        self._size -= 1
+
+        if self.is_empty():
+            self._tail = None
+
+        return node_element
+
+    def append(self, element):
+        self.enqueue(element)
+
+    def pop(self):
+        if self.is_empty():
+            raise EmptyLinkedList("Empty linked list")
+
+        node_element = self._tail._element
+        self._tail = self._tail._prev
+
+        if self._tail:
+            self._tail._next = None
+        else:
+            self._head = None
+
+        self._size -= 1
+
+        return node_element
+
+
 class GameState:
     """
     This class is responsible for storing all the information about the
@@ -38,7 +117,7 @@ class GameState:
         self.black_king_location = (0, 4)
         self.checkmate = False
         self.stalemate = False
-        self.en_passant_possible = ()
+        self.en_passant_possible = ()  # Initialize here
         self.castling_rights = Castling(True, True, True, True)
         self.castling_log = [
             Castling(
@@ -48,6 +127,12 @@ class GameState:
                 self.castling_rights.b_queenside,
             )
         ]
+        self.board_states = _DoubleLinkedList()
+        self.castling_states = _DoubleLinkedList()
+
+        # Save initial states
+        self.board_states.append(deepcopy(self.board))
+        self.castling_states.append(deepcopy(self.castling_rights))
 
     def make_move(self, move):
         self.board[move.start_row][move.start_col] = "--"
@@ -75,12 +160,18 @@ class GameState:
             self.en_passant_possible = ()
 
         if move.castling:
-            if move.end_col - move.start_col == 2:
+            # Save the current game state before applying the castling move
+            self.board_states.enqueue(deepcopy(self.board))  # Save the board state
+            self.castling_states.enqueue(
+                deepcopy(self.castling_rights)
+            )  # Save the castling rights
+
+            if move.end_col - move.start_col == 2:  # Kingside castling
                 self.board[move.end_row][move.end_col - 1] = self.board[move.end_row][
                     move.end_col + 1
                 ]
                 self.board[move.end_row][move.end_col + 1] = "--"
-            else:
+            else:  # Queenside castling
                 self.board[move.end_row][move.end_col + 1] = self.board[move.end_row][
                     move.end_col - 2
                 ]
@@ -97,11 +188,19 @@ class GameState:
         )
 
     def undo_move(self):
-        """
-        Deletes the last move made.
-        """
         if len(self.move_log) != 0:
             move = self.move_log.pop()
+
+            # Restore the game state if castling occurred
+            if move.castling:
+                if not self.board_states.is_empty():
+                    self.board = self.board_states.pop()  # Restore the board
+                if not self.castling_states.is_empty():
+                    self.castling_rights = (
+                        self.castling_states.pop()
+                    )  # Restore castling rights
+
+            # Restore the rest of the board and game state
             self.board[move.start_row][move.start_col] = move.piece_moved
             self.board[move.end_row][move.end_col] = move.piece_captured
             self.white_to_move = not self.white_to_move
@@ -119,37 +218,28 @@ class GameState:
             if move.piece_moved[-1] == "p" and abs(move.start_row - move.end_row) == 2:
                 self.en_passant_possible = ()
 
-            self.castling_log.pop()
-
+            # Apply castling back if necessary (this will be done only after restoring the state)
             if move.castling:
                 if move.piece_moved == "wK":
                     if move.end_col - move.start_col == 2:
-                        self.board[move.end_row][move.end_col + 1] = self.board[
-                            move.end_row
-                        ][move.end_col - 1]
-                        self.board[move.end_row][move.end_col - 1] = "--"
+                        self.board[move.start_row][7] = "wR"
+                        self.board[move.start_row][5] = "--"
                         self.castling_rights.w_kingside = True
-                    else:
-                        self.board[move.end_row][move.end_col - 2] = self.board[
-                            move.end_row
-                        ][move.end_col + 1]
-                        self.board[move.end_row][move.end_col + 1] = "--"
+                    elif move.end_col - move.start_col == -2:
+                        self.board[move.start_row][0] = "wR"
+                        self.board[move.start_row][3] = "--"
                         self.castling_rights.w_queenside = True
                 elif move.piece_moved == "bK":
                     if move.end_col - move.start_col == 2:
-                        self.board[move.end_row][move.end_col + 1] = self.board[
-                            move.end_row
-                        ][move.end_col - 1]
-                        self.board[move.end_row][move.end_col - 1] = "--"
+                        self.board[move.start_row][7] = "bR"
+                        self.board[move.start_row][5] = "--"
                         self.castling_rights.b_kingside = True
-                    else:
-                        self.board[move.end_row][move.end_col - 2] = self.board[
-                            move.end_row
-                        ][move.end_col + 1]
-                        self.board[move.end_row][move.end_col + 1] = "--"
+                    elif move.end_col - move.start_col == -2:
+                        self.board[move.start_row][0] = "bR"
+                        self.board[move.start_row][3] = "--"
                         self.castling_rights.b_queenside = True
 
-        self.checkmate, self.stalemate = False, False
+            self.checkmate, self.stalemate = False, False
 
     def update_castling_rights(self, move):
         """
