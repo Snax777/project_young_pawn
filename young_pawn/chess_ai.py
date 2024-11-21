@@ -214,28 +214,31 @@ def find_best_move_nega_max(game_state, valid_moves):
 
 
 def find_best_move_nega_max_alpha_beta(game_state, valid_moves):
-    """
-    Finds the best move from the NegaMax with Alpha-Beta pruning algorithm.
-    """
-
     global next_move
 
     next_move = None
     turn_mul = 1 if game_state.white_to_move else -1
 
     r.shuffle(valid_moves)
+
+    temp_castling_rights = game_state.castling_rights.copy()
+
     find_move_nega_max_alpha_beta(
-        game_state, valid_moves, DEPTH, -CHECKMATE, CHECKMATE, turn_mul
+        game_state,
+        valid_moves,
+        DEPTH,
+        -CHECKMATE,
+        CHECKMATE,
+        turn_mul,
+        temp_castling_rights,
     )
 
     return next_move
 
 
-def find_move_nega_max_alpha_beta(game_state, valid_moves, depth, alpha, beta, turn):
-    """
-    Uses NegaMax with Alpha-Beta pruning algorithm to find moves at n depths.
-    """
-
+def find_move_nega_max_alpha_beta(
+    game_state, valid_moves, depth, alpha, beta, turn, temp_castling_rights
+):
     global next_move
 
     if depth == 0:
@@ -246,9 +249,19 @@ def find_move_nega_max_alpha_beta(game_state, valid_moves, depth, alpha, beta, t
     for move in valid_moves:
         game_state.make_move(move)
 
+        saved_castling_rights = game_state.castling_rights.copy()
+
+        game_state.update_castling_rights(move)
+
         next_moves = game_state.get_valid_moves()
         score = -find_move_nega_max_alpha_beta(
-            game_state, next_moves, depth - 1, -beta, -alpha, -turn
+            game_state,
+            next_moves,
+            depth - 1,
+            -beta,
+            -alpha,
+            -turn,
+            temp_castling_rights,
         )
 
         if score > max_score:
@@ -258,6 +271,8 @@ def find_move_nega_max_alpha_beta(game_state, valid_moves, depth, alpha, beta, t
                 next_move = move
 
         game_state.undo_move()
+
+        game_state.castling_rights = saved_castling_rights
 
         if max_score > alpha:
             alpha = max_score
