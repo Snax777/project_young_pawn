@@ -181,7 +181,7 @@ def main():
     player_clicks = []
     game_over = False
     player_one = True
-    player_two = False
+    player_two = False  # chess AI plays as black; diasllows kingside castling from the start of the game
 
     while running:
         human_to_play = (game_state.white_to_move and player_one) or (
@@ -233,6 +233,18 @@ def main():
 
                         if not move_made:
                             player_clicks = [square_selected]
+                elif not game_over and not human_to_play:
+                    ai_move = chess_ai.find_best_move_nega_max_alpha_beta(
+                        game_state, valid_moves
+                    )
+
+                    if ai_move is None:
+                        ai_move = chess_ai.find_random_move(valid_moves)
+
+                    game_state.make_move(ai_move)
+
+                    move_made = True
+                    animate = True
             elif event.type == p.KEYDOWN:
                 if event.key == p.K_z:
                     game_state.undo_move()
@@ -249,19 +261,6 @@ def main():
                     move_made = False
                     animate = False
                     game_over = False
-
-        if not game_over and not human_to_play:
-            ai_move = chess_ai.find_best_move_nega_max_alpha_beta(
-                game_state, valid_moves
-            )
-
-            if ai_move is None:
-                ai_move = chess_ai.find_random_move(valid_moves)
-
-            game_state.make_move(ai_move)
-
-            move_made = True
-            animate = True
 
         if move_made:
             if animate:

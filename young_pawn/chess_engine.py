@@ -130,34 +130,22 @@ class GameState:
                             move.end_row
                         ][move.end_col - 1]
                         self.board[move.end_row][move.end_col - 1] = "--"
-                        self.castling_rights.w_kingside = (
-                            True  # Restores right to castle kingside
-                        )
                     else:
                         self.board[move.end_row][move.end_col - 2] = self.board[
                             move.end_row
                         ][move.end_col + 1]
                         self.board[move.end_row][move.end_col + 1] = "--"
-                        self.castling_rights.w_queenside = (
-                            True  # Restores right to castle queenside
-                        )
                 elif move.piece_moved == "bK":
                     if move.end_col - move.start_col == 2:
                         self.board[move.end_row][move.end_col + 1] = self.board[
                             move.end_row
                         ][move.end_col - 1]
                         self.board[move.end_row][move.end_col - 1] = "--"
-                        self.castling_rights.b_kingside = (
-                            True  # Restores right to castle kingside
-                        )
                     else:
                         self.board[move.end_row][move.end_col - 2] = self.board[
                             move.end_row
                         ][move.end_col + 1]
                         self.board[move.end_row][move.end_col + 1] = "--"
-                        self.castling_rights.b_queenside = (
-                            True  # Restores right to castle queenside
-                        )
 
         self.checkmate, self.stalemate = False, False
 
@@ -566,7 +554,13 @@ class GameState:
             self.get_queenside_castling(row, col, moves)
 
     def get_kingside_castling(self, row, col, moves):
-        if (self.board[row][col + 1] == "--") and (self.board[row][col + 2] == "--"):
+        rook_piece = "wR" if self.white_to_move else "bR"
+
+        if (
+            (self.board[row][col + 1] == "--")
+            and (self.board[row][col + 2] == "--")
+            and (self.board[row][col + 3] == rook_piece)
+        ):
             if (not self.square_under_attack(row, col + 1)) and (
                 not self.square_under_attack(row, col + 2)
             ):
@@ -575,10 +569,13 @@ class GameState:
                 )
 
     def get_queenside_castling(self, row, col, moves):
+        rook_piece = "wR" if self.white_to_move else "bR"
+
         if (
             (self.board[row][col - 1] == "--")
             and (self.board[row][col - 2] == "--")
             and (self.board[row][col - 3] == "--")
+            and (self.board[row][col - 4] == rook_piece)
         ):
             if (not self.square_under_attack(row, col - 1)) and (
                 not self.square_under_attack(row, col - 2)
