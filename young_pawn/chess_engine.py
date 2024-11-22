@@ -136,6 +136,8 @@ class GameState:
         self.castling_states.append(deepcopy(self.castling_rights))
 
     def make_move(self, move):
+        self.board_states.enqueue(deepcopy(self.board))
+        self.castling_states.enqueue(deepcopy(self.castling_rights))
         self.board[move.start_row][move.start_col] = "--"
         self.board[move.end_row][move.end_col] = move.piece_moved
         self.move_log.append(move)
@@ -161,12 +163,6 @@ class GameState:
             self.en_passant_possible = ()
 
         if move.castling:
-            # Save the current game state before applying the castling move
-            self.board_states.enqueue(deepcopy(self.board))  # Save the board state
-            self.castling_states.enqueue(
-                deepcopy(self.castling_rights)
-            )  # Save the castling rights
-
             if move.end_col - move.start_col == 2:  # Kingside castling
                 self.board[move.end_row][move.end_col - 1] = self.board[move.end_row][
                     move.end_col + 1
@@ -192,15 +188,6 @@ class GameState:
     def undo_move(self):
         if len(self.move_log) != 0:
             move = self.move_log.pop()
-
-            # Restore the game state if castling occurred
-            if move.castling:
-                if not self.board_states.is_empty():
-                    self.board = self.board_states.pop()  # Restore the board
-                if not self.castling_states.is_empty():
-                    self.castling_rights = (
-                        self.castling_states.pop()
-                    )  # Restore castling rights
 
             # Restore the rest of the board and game state
             self.board[move.start_row][move.start_col] = move.piece_moved
@@ -240,6 +227,25 @@ class GameState:
                         self.board[move.start_row][0] = "bR"
                         self.board[move.start_row][3] = "--"
                         self.castling_rights.b_queenside = True
+
+            if not self.board_states.is_empty():
+                self.board = self.board_states.pop()  # Restore the board
+            if not self.castling_states.is_empty():
+                self.castling_rights = (
+                    self.castling_states.pop()
+                )  # Restore castling rights
+
+            if move.piece_moved in ["wR", "bR"]:
+                if move.start_row == 7 and move.start_col == 0:  # White queenside rook
+                    self.castling_rights.w_queenside = True
+                elif move.start_row == 7 and move.start_col == 7:  # White kingside rook
+                    self.castling_rights.w_kingside = True
+                elif (
+                    move.start_row == 0 and move.start_col == 0
+                ):  # Black queenside rook
+                    self.castling_rights.b_queenside = True
+                elif move.start_row == 0 and move.start_col == 7:  # Black kingside rook
+                    self.castling_rights.b_kingside = True
 
             self.checkmate, self.stalemate = False, False
 
