@@ -657,9 +657,9 @@ class GameState:
         rook_piece = "wR" if self.white_to_move else "bR"
 
         if (
-            (self.board[row][col + 1] == "--")
-            and (self.board[row][col + 2] == "--")
-            and (self.board[row][col + 3] == rook_piece)
+            (0 <= col + 1 < 8 and self.board[row][col + 1] == "--")
+            and (0 <= col + 2 < 8 and self.board[row][col + 2] == "--")
+            and (0 <= col + 3 < 8 and self.board[row][col + 3] == rook_piece)
         ):
             if (not self.square_under_attack(row, col + 1)) and (
                 not self.square_under_attack(row, col + 2)
@@ -672,10 +672,10 @@ class GameState:
         rook_piece = "wR" if self.white_to_move else "bR"
 
         if (
-            (self.board[row][col - 1] == "--")
-            and (self.board[row][col - 2] == "--")
-            and (self.board[row][col - 3] == "--")
-            and (self.board[row][col - 4] == rook_piece)
+            (0 <= col - 1 < 8 and self.board[row][col - 1] == "--")
+            and (0 <= col - 2 < 8 and self.board[row][col - 2] == "--")
+            and (0 <= col - 3 < 8 and self.board[row][col - 3] == "--")
+            and (0 <= col - 4 < 8 and self.board[row][col - 4] == rook_piece)
         ):
             if (not self.square_under_attack(row, col - 1)) and (
                 not self.square_under_attack(row, col - 2)

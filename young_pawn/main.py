@@ -173,12 +173,13 @@ def draw_game_state(screen, game_state, valid_moves, square_selected, move_font=
     draw_move_log(screen, game_state, move_font)
 
 
-def draw_move_log(screen, game_state, move_font):
+def draw_move_log(screen, game_state, move_font, scroll_offset=10):
     """
-    Adds move text to the log.
+    Adds move text to the log with scrolling animation and scrollbar indicator.
     """
     move_log_panel = p.Rect(WIDTH, 0, MOVE_LOG_PANEL_WIDTH, MOVE_LOG_PANEL_HEIGHT)
 
+    # Draw panel background
     p.draw.rect(screen, p.Color("Black"), move_log_panel)
 
     move_log = game_state.move_log
@@ -193,10 +194,11 @@ def draw_move_log(screen, game_state, move_font):
         move_texts.append(move_string)
 
     padding = 5
-    text_y = padding
     line_spacing = 2
-    moves_per_row = 3
+    text_y = -scroll_offset + padding  # Apply scroll offset
+    moves_per_row = 1
 
+    # Render visible move texts
     for num_1 in range(0, len(move_texts), moves_per_row):
         text = ""
 
@@ -207,9 +209,34 @@ def draw_move_log(screen, game_state, move_font):
         text_object = move_font.render(text, True, p.Color("White"))
         text_location = move_log_panel.move(padding, text_y)
 
-        screen.blit(text_object, text_location)
+        if text_y + text_object.get_height() > 0 and text_y < MOVE_LOG_PANEL_HEIGHT:
+            screen.blit(text_object, text_location)
 
         text_y += text_object.get_height() + line_spacing
+
+    # Scrollbar
+    if len(move_texts) > MOVE_LOG_PANEL_HEIGHT // (
+        move_font.get_height() + line_spacing
+    ):
+        scrollbar_height = max(
+            MOVE_LOG_PANEL_HEIGHT
+            * MOVE_LOG_PANEL_HEIGHT
+            // (len(move_texts) * (move_font.get_height() + line_spacing)),
+            20,
+        )
+        scrollbar_y = (
+            scroll_offset
+            * (MOVE_LOG_PANEL_HEIGHT - scrollbar_height)
+            // max(
+                1,
+                len(move_texts) * (move_font.get_height() + line_spacing)
+                - MOVE_LOG_PANEL_HEIGHT,
+            )
+        )
+        scrollbar_rect = p.Rect(
+            WIDTH + MOVE_LOG_PANEL_WIDTH - 10, scrollbar_y, 8, scrollbar_height
+        )
+        p.draw.rect(screen, p.Color("White"), scrollbar_rect)
 
 
 def main():
@@ -228,7 +255,7 @@ def main():
     valid_moves = game_state.get_valid_moves()
     move_made = False
     animate = False
-    move_log_font = p.font.SysFont("Arial", 12)
+    move_log_font = p.font.SysFont("Arial", 18)
 
     load_images()
 
@@ -239,6 +266,9 @@ def main():
     player_one = True
     player_two = True
 
+    # Initialize scroll_offset (default to 0)
+    scroll_offset = 0
+
     while running:
         human_to_play = (game_state.white_to_move and player_one) or (
             (not game_state.white_to_move) and player_two
@@ -248,6 +278,11 @@ def main():
             if event.type == p.QUIT:
                 running = False
             elif event.type == p.MOUSEBUTTONDOWN:
+                if event.button == 4:  # Scroll up
+                    scroll_offset -= 25  # Scroll up
+                elif event.button == 5:  # Scroll down
+                    scroll_offset += 25  # Scroll down
+
                 if not game_over and human_to_play:
                     location = p.mouse.get_pos()
                     col = location[0] // SQUARE_SIZE
@@ -265,8 +300,6 @@ def main():
                             player_clicks[0], player_clicks[-1], game_state.board
                         )
 
-                        print(f"{move.get_chess_notation()}")
-
                         for val in range(len(valid_moves)):
                             if move == valid_moves[val]:
                                 game_state.make_move(valid_moves[val])
@@ -277,6 +310,7 @@ def main():
 
                         if not move_made:
                             player_clicks = [square_selected]
+
             elif event.type == p.KEYDOWN:
                 if event.key == p.K_z:
                     game_state.undo_move()
@@ -294,19 +328,31 @@ def main():
                     animate = False
                     game_over = False
 
-        if not game_over and not human_to_play:
-            ai_move = chess_ai.find_best_move_nega_max_alpha_beta(
-                game_state, valid_moves
-            )
+                if event.key == p.K_DOWN:  # Down arrow key
+                    scroll_offset += 10  # Scroll down
 
+                if event.key == p.K_UP:  # Up arrow key
+                    scroll_offset -= 10  # Scroll up
+
+        # Ensure scroll_offset stays within valid bounds
+        max_scroll_offset = max(
+            0,
+            len(game_state.move_log) * (move_log_font.get_height() + 2)
+            - MOVE_LOG_PANEL_HEIGHT,
+        )
+        scroll_offset = max(0, min(scroll_offset, max_scroll_offset))
+
+        # Handle AI move
+        if not game_over and not human_to_play:
+            ai_move = chess_ai.find_greedy_move(game_state, valid_moves)
             if ai_move is None:
                 ai_move = chess_ai.find_random_move(valid_moves)
 
             game_state.make_move(ai_move)
-
             move_made = True
             animate = True
 
+        # Animate the move
         if move_made:
             if animate:
                 animate_move(game_state.move_log[-1], screen, game_state.board, clock)
@@ -315,20 +361,24 @@ def main():
             move_made = False
             animate = False
 
+        # Draw the game state
         draw_game_state(screen, game_state, valid_moves, square_selected, move_log_font)
 
+        # Draw the move log with the current scroll offset
+        draw_move_log(screen, game_state, move_log_font, scroll_offset)
+
+        # Check game over conditions
         if game_state.checkmate:
             game_over = True
-
             if game_state.white_to_move:
                 draw_endgame_result_text(screen, "Black wins")
             else:
                 draw_endgame_result_text(screen, "White wins")
         elif game_state.stalemate:
             game_over = True
-
             draw_endgame_result_text(screen, "Stalemate")
 
+        # Update the display
         clock.tick(MAX_FPS)
         p.display.flip()
 
