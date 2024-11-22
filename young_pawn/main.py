@@ -12,6 +12,8 @@ DIMENSION = 8
 SQUARE_SIZE = HEIGHT // DIMENSION
 MAX_FPS = 15
 IMAGES = {}
+MOVE_LOG_PANEL_WIDTH = 256
+MOVE_LOG_PANEL_HEIGHT = HEIGHT
 
 
 def draw_board(screen):
@@ -118,6 +120,19 @@ def animate_move(move, screen, board, clock):
         p.draw.rect(screen, color, end_square)
 
         if move.piece_captured != "--":
+            if move.is_en_passant:
+                en_passant_row = (
+                    (move.end_row + 1)
+                    if move.piece_captured[0] == "b"
+                    else (move.end_row - 1)
+                )
+                end_square = p.Rect(
+                    move.end_col * SQUARE_SIZE,
+                    en_passant_row * SQUARE_SIZE,
+                    SQUARE_SIZE,
+                    SQUARE_SIZE,
+                )
+
             screen.blit(IMAGES[move.piece_captured], end_square)
 
         moving_piece_rect = p.Rect(
@@ -132,7 +147,7 @@ def animate_move(move, screen, board, clock):
         clock.tick(60)
 
 
-def draw_text(screen, text):
+def draw_endgame_result_text(screen, text):
     font = p.font.SysFont("Helvitca", 40, True)
     text_object = font.render(text, 0, p.Color("Red"))
     text_location = p.Rect(0, 0, WIDTH, HEIGHT).move(
@@ -147,7 +162,7 @@ def draw_text(screen, text):
     screen.blit(text_object, text_location.move(2, 2))
 
 
-def draw_game_state(screen, game_state, valid_moves, square_selected):
+def draw_game_state(screen, game_state, valid_moves, square_selected, move_font=1):
     """
     Responsible for all graphics in current game state.
     """
@@ -155,6 +170,46 @@ def draw_game_state(screen, game_state, valid_moves, square_selected):
     draw_board(screen)
     highlight_squares(screen, game_state, valid_moves, square_selected)
     draw_pieces(screen, game_state.board)
+    draw_move_log(screen, game_state, move_font)
+
+
+def draw_move_log(screen, game_state, move_font):
+    """
+    Adds move text to the log.
+    """
+    move_log_panel = p.Rect(WIDTH, 0, MOVE_LOG_PANEL_WIDTH, MOVE_LOG_PANEL_HEIGHT)
+
+    p.draw.rect(screen, p.Color("Black"), move_log_panel)
+
+    move_log = game_state.move_log
+    move_texts = []
+
+    for num in range(0, len(move_log), 2):
+        move_string = str((num // 2) + 1) + ". " + str(move_log[num]) + " "
+
+        if num + 1 < len(move_log):
+            move_string += str(move_log[num + 1])
+
+        move_texts.append(move_string)
+
+    padding = 5
+    text_y = padding
+    line_spacing = 2
+    moves_per_row = 3
+
+    for num_1 in range(0, len(move_texts), moves_per_row):
+        text = ""
+
+        for num_2 in range(moves_per_row):
+            if num_1 + num_2 < len(move_texts):
+                text += " " + move_texts[num_1 + num_2]
+
+        text_object = move_font.render(text, True, p.Color("White"))
+        text_location = move_log_panel.move(padding, text_y)
+
+        screen.blit(text_object, text_location)
+
+        text_y += text_object.get_height() + line_spacing
 
 
 def main():
@@ -164,7 +219,7 @@ def main():
 
     p.init()
 
-    screen = p.display.set_mode((WIDTH, HEIGHT))
+    screen = p.display.set_mode((WIDTH + MOVE_LOG_PANEL_WIDTH, HEIGHT))
     clock = p.time.Clock()
 
     screen.fill(p.Color("white"))
@@ -173,6 +228,7 @@ def main():
     valid_moves = game_state.get_valid_moves()
     move_made = False
     animate = False
+    move_log_font = p.font.SysFont("Arial", 12)
 
     load_images()
 
@@ -181,7 +237,7 @@ def main():
     player_clicks = []
     game_over = False
     player_one = True
-    player_two = False
+    player_two = True
 
     while running:
         human_to_play = (game_state.white_to_move and player_one) or (
@@ -197,7 +253,7 @@ def main():
                     col = location[0] // SQUARE_SIZE
                     row = location[-1] // SQUARE_SIZE
 
-                    if square_selected == (row, col):
+                    if square_selected == (row, col) or col >= 8:
                         square_selected = ()
                         player_clicks = []
                     else:
@@ -209,19 +265,7 @@ def main():
                             player_clicks[0], player_clicks[-1], game_state.board
                         )
 
-                        if (
-                            game_state.board[player_clicks[0][0]][player_clicks[0][-1]][
-                                -1
-                            ]
-                            != "p"
-                        ):
-                            chess_piece = game_state.board[player_clicks[0][0]][
-                                player_clicks[0][-1]
-                            ][-1]
-                        else:
-                            chess_piece = ""
-
-                        print(f"{chess_piece}{move.get_chess_notation()}")
+                        print(f"{move.get_chess_notation()}")
 
                         for val in range(len(valid_moves)):
                             if move == valid_moves[val]:
@@ -271,19 +315,19 @@ def main():
             move_made = False
             animate = False
 
-        draw_game_state(screen, game_state, valid_moves, square_selected)
+        draw_game_state(screen, game_state, valid_moves, square_selected, move_log_font)
 
         if game_state.checkmate:
             game_over = True
 
             if game_state.white_to_move:
-                draw_text(screen, "Black wins")
+                draw_endgame_result_text(screen, "Black wins")
             else:
-                draw_text(screen, "White wins")
+                draw_endgame_result_text(screen, "White wins")
         elif game_state.stalemate:
             game_over = True
 
-            draw_text(screen, "Stalemate")
+            draw_endgame_result_text(screen, "Stalemate")
 
         clock.tick(MAX_FPS)
         p.display.flip()

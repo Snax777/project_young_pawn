@@ -118,6 +118,7 @@ class GameState:
         self.checkmate = False
         self.stalemate = False
         self.en_passant_possible = ()  # Initialize here
+        self.en_passant_possible_log = [self.en_passant_possible]
         self.castling_rights = Castling(True, True, True, True)
         self.castling_log = [
             Castling(
@@ -177,6 +178,7 @@ class GameState:
                 ]
                 self.board[move.end_row][move.end_col - 2] = "--"
 
+        self.en_passant_possible_log.append(self.en_passant_possible)
         self.update_castling_rights(move)
         self.castling_log.append(
             Castling(
@@ -213,10 +215,10 @@ class GameState:
             if move.is_en_passant:
                 self.board[move.end_row][move.end_col] = "--"
                 self.board[move.start_row][move.end_col] = move.piece_captured
-                self.en_passant_possible = (move.end_row, move.end_col)
 
-            if move.piece_moved[-1] == "p" and abs(move.start_row - move.end_row) == 2:
-                self.en_passant_possible = ()
+            self.en_passant_possible_log.pop()
+
+            self.en_passant_possible = self.en_passant_possible_log[-1]
 
             # Apply castling back if necessary (this will be done only after restoring the state)
             if move.castling:
@@ -714,6 +716,7 @@ class Move:
         )
         self.is_en_passant = en_passant
         self.castling = castling
+        self.is_capture_move = self.piece_captured != "--"
 
         if self.is_en_passant:
             self.piece_captured = "wp" if self.piece_moved == "bp" else "bp"
@@ -731,11 +734,29 @@ class Move:
 
         return False
 
-    def get_chess_notation(self):
+    def __str__(self):
+        if self.castling:
+            return "O-O" if self.end_col == 6 else "O-O-O"
+
+        if self.is_capture_move or self.is_en_passant:
+            piece = self.piece_moved[-1] if self.piece_moved[-1] != "p" else ""
+            start = self.get_rank_file(self.start_row, self.start_col)
+            end = self.get_rank_file(self.end_row, self.end_col)
+
+            return f"{piece}{start}x{end}"
+
+        piece = self.piece_moved[-1] if self.piece_moved[-1] != "p" else ""
         start = self.get_rank_file(self.start_row, self.start_col)
         end = self.get_rank_file(self.end_row, self.end_col)
 
-        return f"{start}-{end}"
+        return f"{piece}{start}-{end}"
+
+    def get_chess_notation(self):
+        piece = self.piece_moved[-1] if self.piece_moved[-1] != "p" else ""
+        start = self.get_rank_file(self.start_row, self.start_col)
+        end = self.get_rank_file(self.end_row, self.end_col)
+
+        return f"{piece}{start}-{end}"
 
     def get_rank_file(self, row, col):
         return Move.COLS_TO_FILES[col] + Move.ROWS_TO_RANKS[row]
