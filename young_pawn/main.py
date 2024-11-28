@@ -264,7 +264,7 @@ def main():
     player_clicks = []
     game_over = False
     player_one = True
-    player_two = True
+    player_two = False
 
     # Initialize scroll_offset (default to 0)
     scroll_offset = 0
@@ -344,9 +344,9 @@ def main():
 
         # Handle AI move
         if not game_over and not human_to_play:
-            ai_move = chess_ai.find_greedy_move(game_state, valid_moves)
-            if ai_move is None:
-                ai_move = chess_ai.find_random_move(valid_moves)
+            ai_move = chess_ai.find_best_move_nega_max_alpha_beta(
+                game_state, valid_moves
+            )
 
             game_state.make_move(ai_move)
             move_made = True

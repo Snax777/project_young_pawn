@@ -3,6 +3,7 @@ This AI will select chess moves that it sees fit for the current position.
 """
 
 import random as r
+from copy import deepcopy
 
 
 piece_value = {
@@ -15,7 +16,61 @@ piece_value = {
 }
 CHECKMATE = 1000
 STALEMATE = 0
-DEPTH = 3
+DEPTH = 4
+white_pawn_scores = [
+    [0 * val for val in range(8)],
+    [0.5, 0.75, 1.0, 1.5, 1.5, 1.0, 0.75, 0.5],
+    [0.5, 0.8, 1.25, 1.75, 1.75, 1.25, 0.8, 5],
+    [0.5, 1.0, 1.5, 2.0, 2.0, 1.5, 1.0, 0.5],
+    [1.0, 1.5, 2.0, 2.5, 2.5, 2.0, 1.5, 1.0],
+    [1.5, 2.0, 2.75, 3.5, 3.5, 2.75, 2.0, 1.5],
+    [2.5, 3.0, 4.25, 5.5, 5.5, 4.25, 3.0, 2.5],
+    [0 * val for val in range(8)],
+]
+black_pawn_scores = [white_pawn_scores[row] for row in range(7, -1, -1)]
+knight_scores = [
+    [1 for num in range(8)],
+    [1, 2, 2, 2, 2, 2, 2, 1],
+    [1, 2, 3, 3, 3, 3, 2, 1],
+    [1, 2, 3, 4, 4, 3, 2, 1],
+    [1, 2, 3, 4, 4, 3, 2, 1],
+    [1, 2, 3, 3, 3, 3, 2, 1],
+    [1, 2, 2, 2, 2, 2, 2, 1],
+    [1 for num in range(8)],
+]
+bishop_scores = deepcopy(knight_scores)
+rook_scores = [
+    [4 for num in range(8)],
+    [3 for num in range(8)],
+    [2 for num in range(8)],
+    [1 for num in range(8)],
+    [1 for num in range(8)],
+    [2 for num in range(8)],
+    [3 for num in range(8)],
+    [4 for num in range(8)],
+]
+queen_scores = deepcopy(knight_scores)
+white_king_scores = [
+    [-3, -4, -4, -5, -5, -4, -4, -3],
+    [-3, -4, -4, -5, -5, -4, -4, -3],
+    [-3, -4, -4, -5, -5, -4, -4, -3],
+    [-3, -4, -4, -5, -5, -4, -4, -3],
+    [-2, -3, -3, -4, -4, -3, -3, -2],
+    [-1, -2, -2, -2, -2, -2, -2, -1],
+    [2, 2, 0, 0, 0, 0, 2, 2],
+    [2, 3, 1, 0, 0, 1, 3, 2],
+]
+black_king_scores = [white_king_scores[row] for row in range(7, -1, -1)]
+piece_position_score = {
+    "wp": white_pawn_scores,
+    "bp": black_pawn_scores,
+    "N": knight_scores,
+    "B": bishop_scores,
+    "R": rook_scores,
+    "Q": queen_scores,
+    "wK": white_king_scores,
+    "bK": black_king_scores,
+}
 
 
 def find_random_move(valid_moves):
@@ -147,6 +202,45 @@ def find_recursive_minmax_move(game_state, valid_moves, depth, white_to_move):
         return min_score
 
 
+def weighted_score_board(game_state):
+    if game_state.checkmate:
+        if game_state.white_to_move:
+            return -CHECKMATE
+        else:
+            return CHECKMATE
+    elif game_state.stalemate:
+        return STALEMATE
+
+    score = 0
+
+    for row in range(len(game_state.board)):
+        for col in range(len(game_state.board[row])):
+            square = game_state.board[row][col]
+
+            if square != "--":
+                pos_score = 0
+
+                if square[1] == "p":
+                    pos_score = piece_position_score[square][row][col]
+                elif square[1] == "N":
+                    pos_score = piece_position_score[square[1]][row][col]
+                elif square[1] == "B":
+                    pos_score = piece_position_score[square[1]][row][col]
+                elif square[1] == "R":
+                    pos_score = piece_position_score[square[1]][row][col]
+                elif square[1] == "Q":
+                    pos_score = piece_position_score[square[1]][row][col]
+                elif square[1] == "K":
+                    pos_score = piece_position_score[square][row][col]
+
+                if square[0] == "w":
+                    score += piece_value[square[1]] + pos_score * 0.5
+                elif square[0] == "b":
+                    score -= piece_value[square[1]] + pos_score * 0.5
+
+    return score
+
+
 def score_board(game_state):
     if game_state.checkmate:
         if game_state.white_to_move:
@@ -242,7 +336,7 @@ def find_move_nega_max_alpha_beta(
     global next_move
 
     if depth == 0:
-        return turn * score_board(game_state)
+        return turn * weighted_score_board(game_state)
 
     max_score = -CHECKMATE
 
