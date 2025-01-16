@@ -16,7 +16,7 @@ piece_value = {
 }
 CHECKMATE = 1000
 STALEMATE = 0
-DEPTH = 4
+DEPTH = 2
 white_pawn_scores = [
     [0 * val for val in range(8)],
     [0.5, 0.75, 1.0, 1.5, 1.5, 1.0, 0.75, 0.5],

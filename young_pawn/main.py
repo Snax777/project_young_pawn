@@ -348,6 +348,9 @@ def main():
                 game_state, valid_moves
             )
 
+            if not ai_move:
+                ai_move = chess_ai.find_random_move(valid_moves)
+
             game_state.make_move(ai_move)
             move_made = True
             animate = True
